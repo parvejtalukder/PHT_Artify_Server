@@ -5,6 +5,7 @@ const app = express();
 require('dotenv').config(); 
 const port = process.env.PORT || 3001;
 const site = process.env.SITE_NAME;
+// const { ObjectId } = require('mongodb');
 // const admin = require("firebase-admin");
 
 // mongodb
@@ -35,18 +36,56 @@ async function run() {
     const usersColl = ArtifyDb.collection("users");
     const artworksColl = ArtifyDb.collection("artworks");
 
+    // app.get('/user', a)
+    app.get('/user', async (req, res) => {
+      const {email} = req.query;
+      const user = (await usersColl.findOne({Email: email}));
+      res.send(user._id);
+    })
+
+    // app.get('/user', a)
+    app.get('/user/info', async (req, res) => {
+      const {email} = req.query;
+      const user = (await usersColl.findOne({Email: email}));
+      res.send(user);
+    })
+
     app.post('/users', async (req, res) => {
         const newUser = req.body;
-        const email = req.body.email;
-        const query = { email: email }
+        const email = newUser.Email;
+        const query = { Email: email }
         const existingUser = await usersColl.findOne(query);
         if (existingUser) {
-            res.send({ message: 'user already exits. do not need to insert again' })
+              return res.send({ exists: true, message: 'User already exists. No need to insert again.' });
         }
-        else {
-            const result = await usersColl.insertOne(newUser);
-            res.send(result);
-        }
+        const result = await usersColl.insertOne(newUser);
+        res.send({ exists: false, message: 'User registered successfully!', data: result });
+    })
+
+
+    // adding arts 
+    app.post('/add-art', async (req, res) => {
+      const newArt = req.body;
+      const insert = await artworksColl.insertOne(newArt);
+      res.send({ message: "Inserted", data: insert });
+    });
+
+    // last 6 artiworks
+    app.get('/artworks', async (req, res) => {
+      const allArts = (await artworksColl.find().sort({ _id: -1 }).limit(6).toArray());
+      res.send(allArts);
+    })
+    // top artiworks
+    app.get('/top-art', async (req, res) => {
+      const Art = (await artworksColl.find().sort({ likesCount: -1 }).limit(3).toArray());
+      res.send(Art);
+    })
+    // artstInfoById
+    app.get('/artist/:id', async (req, res) => {
+      const { object } = req.params;
+      const userFromId = (await usersColl.findOne({_id: new ObjectId(object)}));
+      // const usersColl.findOne()
+      res.send(userFromId);
     })
 
     // Send a ping to confirm a successful connection
