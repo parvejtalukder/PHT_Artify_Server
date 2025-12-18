@@ -5,10 +5,7 @@ const app = express();
 require('dotenv').config(); 
 const port = process.env.PORT || 3001;
 const site = process.env.SITE_NAME;
-// const { ObjectId } = require('mongodb');
-// const admin = require("firebase-admin");
 const admin = require("firebase-admin");
-
 const serviceAccount = require("./artifyFirebase.json");
 
 admin.initializeApp({
@@ -34,7 +31,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
-const logger = (req, res, next) => {
+const logger = async (req, res, next) => {
   const authHeader = req.headers.authorization; 
   if(!authHeader) {
       return res.status(401).send({message: "Unauthorized"});
@@ -44,7 +41,14 @@ const logger = (req, res, next) => {
       return res.status(401).send({message: "Unauthorized"});
   }
 
-  next();
+  try {
+    const userInfo = await admin.auth().verifyIdToken(token);
+    console.log(userInfo);
+    next();
+  } catch (error) {
+    return res.status(401).send({message: "Unauthorized"});
+  }
+
 };
 
 
