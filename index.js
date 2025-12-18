@@ -67,6 +67,7 @@ async function run() {
     await client.connect();
     const ArtifyDb = client.db("ArtifyDb");
     const usersColl = ArtifyDb.collection("users");
+    const LikeColl = ArtifyDb.collection("likes");
     const artworksColl = ArtifyDb.collection("artworks");
 
     // app.get('/user', a)
@@ -147,6 +148,19 @@ async function run() {
         _id: new ObjectId(id)
       });
       res.send(getOne);
+    })
+
+
+    // like colls
+    app.post('/add-like',logger, async (req, res) => {
+      const newLike = req.body;
+      const insert = await LikeColl.insertOne(newLike);
+      res.send({insertedId: insert.insertedId});
+    })
+    app.patch('/update-like/:id', logger, async (req, res) => {
+      // const newLike = req.body;
+      const {id} = req.params;
+      const updateOne = await artworksColl.updateOne({ _id: new ObjectId(artworkId) }, { $inc: { likesCount: 1 } })
     })
 
     // Send a ping to confirm a successful connection
