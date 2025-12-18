@@ -19,8 +19,27 @@ const client = new MongoClient(uri, {
 });
 
 // middleware
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: '*', 
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(express.json());
+const logger = (req, res, next) => {
+  const authHeader = req.headers.authorization; 
+  if(!authHeader) {
+      return res.status(401).send({message: "Unauthorized"});
+  }
+  const token = authHeader.split(' ')[1]; 
+  if(!token) {
+      return res.status(401).send({message: "Unauthorized"});
+  }
+  
+  next();
+};
+
+
 
 
 // app
@@ -108,7 +127,7 @@ async function run() {
     });
 
     // get single art
-    app.get('/artworks/:id', async (req, res) => {
+    app.get('/artworks/:id', logger, async (req, res) => {
       const { id } = req.params;
       const getOne = await artworksColl.findOne({
         _id: new ObjectId(id)
