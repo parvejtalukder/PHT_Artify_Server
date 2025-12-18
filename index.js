@@ -62,12 +62,29 @@ async function run() {
         res.send({ exists: false, message: 'User registered successfully!', data: result });
     })
 
+    // update user during the artwork add
+    app.patch('/add-art/:id', async (req, res) => {
+      try {
+      const { id } = req.params;
+      const {ArtistId} = req.body;
+      const result = await usersColl.updateOne(
+          { _id: new ObjectId(ArtistId) },
+          { $addToSet: { Artworks: new ObjectId(id) } }
+      );
+      res.send(result);
+    } catch(err) {
+      res.status(500).send({ error: "Update failed" });
+    }
+    })
+
 
     // adding arts 
     app.post('/add-art', async (req, res) => {
       const newArt = req.body;
-      const insert = await artworksColl.insertOne(newArt);
-      res.send({ message: "Inserted", data: insert });
+      const result = await artworksColl.insertOne(newArt);
+      res.send({
+        insertedId: result.insertedId 
+      });
     });
 
     // last 6 artiworks
@@ -80,13 +97,15 @@ async function run() {
       const Art = (await artworksColl.find().sort({ likesCount: -1 }).limit(3).toArray());
       res.send(Art);
     })
-    // artstInfoById
+
+    // artistbyId
     app.get('/artist/:id', async (req, res) => {
-      const { object } = req.params;
-      const userFromId = (await usersColl.findOne({_id: new ObjectId(object)}));
-      // const usersColl.findOne()
+      const { id } = req.params; 
+      const userFromId = await usersColl.findOne({
+        _id: new ObjectId(id)
+      });
       res.send(userFromId);
-    })
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
