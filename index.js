@@ -94,7 +94,7 @@ async function run() {
     })
     // top artiworks
     app.get('/top-art', async (req, res) => {
-      const Art = (await artworksColl.find().sort({ likesCount: -1 }).limit(3).toArray());
+      const Art = (await artworksColl.find({ Visibility: { $ne: 'Private' } }).sort({ likesCount: -1 }).limit(3).toArray());
       res.send(Art);
     })
 
