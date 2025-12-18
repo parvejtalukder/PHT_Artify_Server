@@ -29,8 +29,9 @@ app.use(cors({
   origin: '*', 
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
 app.use(express.json());
+
+// verify just is he logged user
 const logger = async (req, res, next) => {
   const authHeader = req.headers.authorization; 
   if(!authHeader) {
@@ -42,8 +43,9 @@ const logger = async (req, res, next) => {
   }
 
   try {
-    const userInfo = await admin.auth().verifyIdToken(token);
-    console.log(userInfo);
+    await admin.auth().verifyIdToken(token);
+    // console.log(userInfo);
+    // const email = userInfo.email;
     next();
   } catch (error) {
     return res.status(401).send({message: "Unauthorized"});
@@ -68,13 +70,13 @@ async function run() {
     const artworksColl = ArtifyDb.collection("artworks");
 
     // app.get('/user', a)
-    app.get('/user', async (req, res) => {
+    app.get('/user', logger, async (req, res) => {
       const {email} = req.query;
       const user = (await usersColl.findOne({Email: email}));
       res.send(user._id);
     })
 
-    // app.get('/user', a)
+    // app.get('/user', a) 
     app.get('/user/info', async (req, res) => {
       const {email} = req.query;
       const user = (await usersColl.findOne({Email: email}));
@@ -93,8 +95,8 @@ async function run() {
         res.send({ exists: false, message: 'User registered successfully!', data: result });
     })
 
-    // update user during the artwork add
-    app.patch('/add-art/:id', async (req, res) => {
+    // update user during the artwork add (need veri)
+    app.patch('/add-art/:id', logger, async (req, res) => {
       try {
       const { id } = req.params;
       const {ArtistId} = req.body;
@@ -109,8 +111,8 @@ async function run() {
     })
 
 
-    // adding arts 
-    app.post('/add-art', async (req, res) => {
+    // adding arts (need veri)
+    app.post('/add-art', logger, async (req, res) => {
       const newArt = req.body;
       const result = await artworksColl.insertOne(newArt);
       res.send({
@@ -139,7 +141,7 @@ async function run() {
     });
 
     // get single art
-    app.get('/artworks/:id', logger, async (req, res) => {
+    app.get('/artworks/:id', async (req, res) => {
       const { id } = req.params;
       const getOne = await artworksColl.findOne({
         _id: new ObjectId(id)
