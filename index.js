@@ -89,7 +89,7 @@ async function run() {
 
     // last 6 artiworks
     app.get('/artworks', async (req, res) => {
-      const allArts = (await artworksColl.find().sort({ _id: -1 }).limit(6).toArray());
+      const allArts = (await artworksColl.find({ Visibility: { $ne: 'Private' } }).sort({ _id: -1 }).limit(6).toArray());
       res.send(allArts);
     })
     // top artiworks
