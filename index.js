@@ -107,6 +107,15 @@ async function run() {
       res.send(userFromId);
     });
 
+    // get single art
+    app.get('/artworks/:id', async (req, res) => {
+      const { id } = req.params;
+      const getOne = await artworksColl.findOne({
+        _id: new ObjectId(id)
+      });
+      res.send(getOne);
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
