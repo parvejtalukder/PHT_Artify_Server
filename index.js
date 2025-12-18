@@ -7,6 +7,14 @@ const port = process.env.PORT || 3001;
 const site = process.env.SITE_NAME;
 // const { ObjectId } = require('mongodb');
 // const admin = require("firebase-admin");
+const admin = require("firebase-admin");
+
+const serviceAccount = require("./artifyFirebase.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
 
 // mongodb
 const uri = process.env.MONGO_URI; // <-- use env variable
@@ -35,7 +43,7 @@ const logger = (req, res, next) => {
   if(!token) {
       return res.status(401).send({message: "Unauthorized"});
   }
-  
+
   next();
 };
 
