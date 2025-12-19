@@ -68,6 +68,7 @@ async function run() {
     const ArtifyDb = client.db("ArtifyDb");
     const usersColl = ArtifyDb.collection("users");
     const LikeColl = ArtifyDb.collection("likes");
+    const FavColl = ArtifyDb.collection("favorites");
     const artworksColl = ArtifyDb.collection("artworks");
 
     // app.get('/user', a)
@@ -169,11 +170,34 @@ async function run() {
     })
 
     //check like
-    app.get('/likes/:userEmail', async (req, res) => {
-      const {userEmail} = req.params;
-      const result = await LikeColl.find({ userEmail }).toArray();
+    app.get('/likes/check', logger, async (req, res) => {
+      const { userEmail, artworkId } = req.query;
+      // const {userEmail} = req.params;
+      // const {}
+      if (!userEmail || !artworkId) {
+          return res.status(400).send({ message: 'Missing data' });
+      }
+      const like = await LikeColl.findOne({ userEmail, artworkId });
+      // const result = await LikeColl.find({ userEmail }).toArray();
       // const result = await LikeColl.find()
+      res.send(like);
+    })
+
+    //favorites
+    app.post('/add-fav', logger, async (req, res) => {
+      const newFav = req.body;
+      const result = await FavColl.insertOne(newFav);
       res.send(result);
+    })
+
+    // check already fav or not?
+    app.get('/favorites/check', logger, async (req, res) => {
+      const { userEmail, artworkId } = req.query;
+      if (!userEmail || !artworkId) {
+          return res.status(400).send({ message: 'Missing data' });
+      }
+      const faved = await FavColl.findOne({ userEmail, artworkId });
+      res.send(faved);
     })
 
     // Send a ping to confirm a successful connection
