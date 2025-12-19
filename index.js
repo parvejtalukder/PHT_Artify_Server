@@ -157,10 +157,15 @@ async function run() {
       const insert = await LikeColl.insertOne(newLike);
       res.send({insertedId: insert.insertedId});
     })
-    app.patch('/update-like/:id', logger, async (req, res) => {
+    app.patch('/update-like/:id', logger,  async (req, res) => {
       // const newLike = req.body;
       const {id} = req.params;
-      const updateOne = await artworksColl.updateOne({ _id: new ObjectId(artworkId) }, { $inc: { likesCount: 1 } })
+      const result = await artworksColl.updateOne({ _id: new ObjectId(id) }, { $inc: { likesCount: 1 } })
+      if (result.modifiedCount === 1) {
+      return res.send({ success: true, message: "Likes incremented" });
+    } else {
+      return res.status(404).send({ success: false, message: "Artwork not found" });
+    }
     })
 
     // Send a ping to confirm a successful connection
