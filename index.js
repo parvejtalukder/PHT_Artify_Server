@@ -137,9 +137,13 @@ async function run() {
       const allArts = (await artworksColl.find({ Visibility: { $ne: 'Private' } }).sort({ _id: -1 }).limit(6).toArray());
       res.send(allArts);
     })
+
+
     // top artiworks
     app.get('/top-art', async (req, res) => {
-      const Art = (await artworksColl.find({ Visibility: { $ne: 'Private' } }).sort({ likesCount: -1 }).limit(3).toArray());
+      const Art = (await artworksColl.find(
+        { Visibility: { $ne: 'Private' } }
+      ).sort({ likesCount: -1 }).limit(3).toArray());
       res.send(Art);
     })
 
@@ -247,6 +251,16 @@ async function run() {
       }
       const faved = await FavColl.findOne({ userEmail, artworkId });
       res.send(faved);
+    })
+
+    // remvoe fav
+    app.delete('/fav/delete', logger, async (req, res) => {
+      const {artId, email} = req.query;
+      const del = await FavColl.deleteOne(
+        {artworkId: artId},
+        {userEmail: email}
+      );
+      res.send(del.deletedCount);
     })
 
     // Send a ping to confirm a successful connection
