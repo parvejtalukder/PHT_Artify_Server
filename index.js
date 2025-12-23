@@ -121,6 +121,16 @@ async function run() {
         insertedId: result.insertedId 
       });
     });
+    // adding arts (need veri)
+    app.patch('/edit-art/:id', logger, async (req, res) => {
+      const {id} = req.params;
+      const newArt = req.body;
+      const result = await artworksColl.updateOne(
+        {_id: new ObjectId(id)},
+        { $set: newArt},
+      );
+      res.send(result.modifiedCount);
+    });
 
     // last 6 artiworks
     app.get('/artworks', async (req, res) => {
@@ -131,6 +141,12 @@ async function run() {
     app.get('/top-art', async (req, res) => {
       const Art = (await artworksColl.find({ Visibility: { $ne: 'Private' } }).sort({ likesCount: -1 }).limit(3).toArray());
       res.send(Art);
+    })
+
+    app.get('/artwork/:id', logger, async (req, res) => {
+      const {id} = req.params;
+      const artwork = await artworksColl.findOne({_id: new ObjectId(id)})
+      res.send(artwork);
     })
 
     // artistbyId
@@ -151,6 +167,39 @@ async function run() {
       res.send(getOne);
     })
 
+    // getFavs
+    app.get('/art/fav', logger, async (req, res) => {
+      const {email} = req.query;
+      const favs = await FavColl.find({userEmail: email}).toArray();
+      res.send(favs);
+    })
+
+    // //get arts by users
+    // app.get('/artworks/:email', logger, async (req, res) => {
+    //   const {email} = req.params;
+    //   const getArts = await artworksColl.find({_id: new ObjectId(objId)}).toArray();
+    //   res.send(getArts);
+    // })
+
+    // de;ete  
+    app.delete('/art/:deletee', logger, async (req, res) => {
+      const {deletee} = req.params;
+      const deleteThis = await artworksColl.deleteOne({_id: new ObjectId(deletee)});
+      res.send(deleteThis.deletedCount);
+    })
+    // delte from users array
+    app.patch('/user/art/', logger, async (req, res) => { 
+      const { userData } = req.body;
+      const deleteId = userData.ArtId;
+      const fromUser = userData.UsrId;
+      const update = await usersColl.updateOne(
+        {_id: new ObjectId(fromUser)},
+        { $pull: { Artworks: new ObjectId(deleteId) } }
+      )
+      const remove = await FavColl.deleteMany({artworkId: deleteId});
+      const likeremove = await LikeColl.deleteMany({artworkId: deleteId});
+      res.send(update.modifiedCount && remove.deletedCount && likeremove.deletedCount);
+    })
 
     // like colls
     app.post('/add-like',logger, async (req, res) => {
